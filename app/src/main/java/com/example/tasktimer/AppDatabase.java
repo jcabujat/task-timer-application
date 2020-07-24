@@ -56,13 +56,13 @@ class AppDatabase extends SQLiteOpenHelper {
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
         Log.d(TAG, "onUpgrade: starts");
-        switch (i) {
+        switch (oldVersion) {
             case 1:
                 // upgrade logic from version 1
             default:
-                throw new IllegalStateException("onUpgrade() with unknown new version" + i1);
+                throw new IllegalStateException("onUpgrade() with unknown new version" + newVersion);
         }
 
     }
