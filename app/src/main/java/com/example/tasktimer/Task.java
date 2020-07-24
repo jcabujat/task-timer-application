@@ -17,7 +17,7 @@ class Task implements Serializable {
         mSortOrder = sortOrder;
     }
 
-    public long getM_Id() {
+    public long getId() {
         return m_Id;
     }
 
@@ -33,7 +33,7 @@ class Task implements Serializable {
         return mSortOrder;
     }
 
-    public void setM_Id(long id) {
+    public void setId(long id) {
         this.m_Id = id;
     }
 
