@@ -1,21 +1,13 @@
 <resources>
     <string name="app_name">Task Timer</string>
     <string name="menumain_settings">Settings</string>
-    <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
-    <string name="next">Next</string>
-    <string name="previous">Previous</string>
-
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="menutitle_AddTask">Add Task</string>
     <string name="menumain_showDuration">Duration Report</string>
     <string name="menumain_showAbout">About TaskTimer</string>
     <string name="menumain_generate">Generate data</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="no_task_message">No Task</string>
+    <string name="no_task_message">No Task Selected</string>
     <string name="edit_button_description">Button to edit task details.</string>
     <string name="delete_button_description">Button to delete task</string>
     <string name="title_activity_add_edit">AddEditActivity</string>
@@ -23,4 +15,6 @@
     <string name="addedit_description_hint">Task description (optional)</string>
     <string name="addedit_sort_hint">Sort order: sorts low to high</string>
     <string name="addedit_save_text">Save</string>
+    <string name="instructions_heading">Instructions:</string>
+    <string name="instructions_detail">Use add button (+) in the toolbar to create new task. \n\nTask will be sorted by sort order from low to high. Task with the same sort order will be sorted alphabetically by name. \n\nTapping a task will start the timer for that task (and will stop the timer for any previous task that was being timed). \n\nEach task has Edit and Delete buttons if you want to edit the details or remove the task.</string>
 </resources>

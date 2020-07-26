@@ -3,6 +3,7 @@ package com.example.tasktimer;
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
@@ -67,6 +69,7 @@ public class AddEditActivityFragment extends Fragment {
             mMode = FragmentEditMode.ADD;
         }
 
+
         mSaveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -95,6 +98,7 @@ public class AddEditActivityFragment extends Fragment {
                         if (values.size() != 0) {
                             Log.d(TAG, "onClick: updating task");
                             contentResolver.update(TasksContract.buildTasksUri(task.getId()), values, null, null);
+                            Toast.makeText(getContext(), "Edit details saved successfully", Toast.LENGTH_LONG).show();
                         }
                         break;
 
@@ -105,10 +109,12 @@ public class AddEditActivityFragment extends Fragment {
                             values.put(TasksContract.Columns.TASK_DESCRIPTION, mDescriptionTextView.getText().toString());
                             values.put(TasksContract.Columns.TASK_SORT_ORDER, sortOrder);
                             contentResolver.insert(TasksContract.CONTENT_URI, values);
+                            Toast.makeText(getContext(), "Record stored successfully", Toast.LENGTH_LONG).show();
                         }
                         break;
                 }
                 Log.d(TAG, "onClick: Done editing");
+                startActivity(new Intent(getContext(), MainActivity.class));
             }
         });
         Log.d(TAG, "onCreateView: Exiting...");
