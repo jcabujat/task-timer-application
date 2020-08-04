@@ -5,11 +5,14 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements CursorRecyclerViewAdapter.OnTaskClickListener {
     private static final String TAG = "MainActivity";
 
     // Whether or not the activity is in 2-pane mode
@@ -24,6 +27,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        if (findViewById(R.id.task_detail_container) != null) {
+            // Detail container view will present only in large screen layouts (res/value-land and res/value-sw600dp)
+            // If this view is present, then activity should be in two-pane mode.
+            mTwoPane = true;
+        }
 
 //        String[] projection = {TasksContract.Columns._ID,
 //                TasksContract.Columns.TASKS_NAME,
@@ -126,10 +135,32 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onEditClick(Task task) {
+        taskEditRequest(task);
+    }
+
+    @Override
+    public void onDeleteClick(Task task) {
+        getContentResolver().delete(TasksContract.buildTasksUri(task.getId()), null, null);
+        Toast.makeText(this, "Task deleted successfully", Toast.LENGTH_LONG).show();
+    }
+
     private void taskEditRequest(Task task) {
         Log.d(TAG, "taskEditRequest: starts");
         if (mTwoPane) {
-            Log.d(TAG, "taskEditRequest: in two-pane mode (tablet)");
+            Log.d(TAG, "taskEditRequest: in two-pane mode (landscape mode or using tablet)");
+            AddEditActivityFragment fragment = new AddEditActivityFragment();
+
+            Bundle arguments = new Bundle();
+            arguments.putSerializable(Task.class.getSimpleName(), task);
+            fragment.setArguments(arguments);
+
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.replace(R.id.task_detail_container, fragment);
+            fragmentTransaction.commit();
+
         } else {
             Log.d(TAG, "taskEditRequest: in single-pane mode (phone)");
             // in single-pane mode, start the detail activity for the selected item Id.

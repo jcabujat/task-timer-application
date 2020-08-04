@@ -47,7 +47,8 @@ public class AddEditActivityFragment extends Fragment {
         mSortOrderTextView = view.findViewById(R.id.addedit_sortorder);
         mSaveButton = view.findViewById(R.id.addedit_save);
 
-        Bundle arguments = getActivity().getIntent().getExtras(); // To be changed later
+//        Bundle arguments = getActivity().getIntent().getExtras(); // To be changed later
+        Bundle arguments = getArguments();
 
         final Task task;
         if (arguments != null) {
@@ -109,7 +110,7 @@ public class AddEditActivityFragment extends Fragment {
                             values.put(TasksContract.Columns.TASK_DESCRIPTION, mDescriptionTextView.getText().toString());
                             values.put(TasksContract.Columns.TASK_SORT_ORDER, sortOrder);
                             contentResolver.insert(TasksContract.CONTENT_URI, values);
-                            Toast.makeText(getContext(), "Record stored successfully", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), "Task was added successfully", Toast.LENGTH_LONG).show();
                         }
                         break;
                 }

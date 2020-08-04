@@ -14,23 +14,31 @@ import androidx.recyclerview.widget.RecyclerView;
 class CursorRecyclerViewAdapter extends RecyclerView.Adapter<CursorRecyclerViewAdapter.TaskViewHolder> {
     private static final String TAG = "CursorRecyclerViewAdapt";
     private Cursor mCursor;
+    private OnTaskClickListener mListener;
 
-    public CursorRecyclerViewAdapter(Cursor cursor) {
+    interface OnTaskClickListener {
+        void onEditClick(Task task);
+
+        void onDeleteClick(Task task);
+    }
+
+    public CursorRecyclerViewAdapter(Cursor cursor, OnTaskClickListener listener) {
         Log.d(TAG, "CursorRecyclerViewAdapter: constructor called");
         mCursor = cursor;
+        mListener = listener;
     }
 
     @NonNull
     @Override
     public TaskViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        Log.d(TAG, "onCreateViewHolder: new ViewHolder requested");
+//        Log.d(TAG, "onCreateViewHolder: new ViewHolder requested");
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.task_list_items, parent, false);
         return new TaskViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
-        Log.d(TAG, "onBindViewHolder: starts");
+//        Log.d(TAG, "onBindViewHolder: starts");
 
         if (mCursor == null || mCursor.getCount() == 0) {
             Log.d(TAG, "onBindViewHolder: No tasks yet, providing instructions");
@@ -42,10 +50,42 @@ class CursorRecyclerViewAdapter extends RecyclerView.Adapter<CursorRecyclerViewA
             if (!mCursor.moveToPosition(position)) {
                 throw new IllegalStateException("Couldn't move to position " + position);
             }
-            holder.name.setText(mCursor.getString(mCursor.getColumnIndex(TasksContract.Columns.TASKS_NAME)));
-            holder.description.setText(mCursor.getString(mCursor.getColumnIndex(TasksContract.Columns.TASK_DESCRIPTION)));
+
+            final Task task = new Task(mCursor.getLong(mCursor.getColumnIndex(TasksContract.Columns._ID)),
+                    mCursor.getString(mCursor.getColumnIndex(TasksContract.Columns.TASKS_NAME)),
+                    mCursor.getString(mCursor.getColumnIndex(TasksContract.Columns.TASK_DESCRIPTION)),
+                    mCursor.getInt(mCursor.getColumnIndex(TasksContract.Columns.TASK_SORT_ORDER)));
+
+            holder.name.setText(task.getName());
+            holder.description.setText(task.getDescription());
             holder.editButton.setVisibility(View.VISIBLE); // TODO add onClick listener
             holder.deleteButton.setVisibility(View.VISIBLE); // TODO add onClick listener
+
+            View.OnClickListener buttonListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+//                    Log.d(TAG, "onClick: starts");
+                    switch (view.getId()) {
+                        case R.id.tli_edit:
+                            if (mListener != null) {
+                                mListener.onEditClick(task);
+                            }
+                            break;
+                        case R.id.tli_delete:
+                            if (mListener != null) {
+                                mListener.onDeleteClick(task);
+                            }
+                            break;
+                        default:
+                            Log.d(TAG, "onClick: found unexpected button id " + view.getId());
+                    }
+//                    Log.d(TAG, "onClick: button with id " + view.getId() + " clicked.");
+//                    Log.d(TAG, "onClick: task name is " + task.getName());
+                }
+            };
+
+            holder.editButton.setOnClickListener(buttonListener);
+            holder.deleteButton.setOnClickListener(buttonListener);
         }
 
     }
@@ -93,7 +133,7 @@ class CursorRecyclerViewAdapter extends RecyclerView.Adapter<CursorRecyclerViewA
 
         public TaskViewHolder(View itemView) {
             super(itemView);
-            Log.d(TAG, "TaskViewHolder: created");
+//            Log.d(TAG, "TaskViewHolder: created");
 
             this.name = itemView.findViewById(R.id.tli_name);
             this.description = itemView.findViewById(R.id.tli_description);
