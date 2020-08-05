@@ -1,9 +1,10 @@
 package com.example.tasktimer;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.Intent;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,6 +14,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 public class AddEditActivityFragment extends Fragment {
@@ -26,10 +28,36 @@ public class AddEditActivityFragment extends Fragment {
     private EditText mDescriptionTextView;
     private EditText mSortOrderTextView;
     private Button mSaveButton;
+    private OnSaveClicked mSaveListener = null;
+
+    interface OnSaveClicked {
+        void onSaveClicked();
+    }
 
 
     public AddEditActivityFragment() {
         Log.d(TAG, "AddEditActivityFragment: constructor called");
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        Log.d(TAG, "onAttach: starts");
+        super.onAttach(context);
+
+        // Activities containing this fragment must implement its callback
+        Activity activity = getActivity();
+        if (!(activity instanceof OnSaveClicked)) {
+            throw new ClassCastException(activity.getClass().getSimpleName() +
+                    " must implement AddEditActivityFragment.OnSaveClicked interface.");
+        }
+        mSaveListener = (OnSaveClicked) getActivity();
+    }
+
+    @Override
+    public void onDetach() {
+        Log.d(TAG, "onDetach: starts");
+        super.onDetach();
+        mSaveListener = null;
     }
 
     @SuppressLint("SetTextI18n")
@@ -115,7 +143,12 @@ public class AddEditActivityFragment extends Fragment {
                         break;
                 }
                 Log.d(TAG, "onClick: Done editing");
-                startActivity(new Intent(getContext(), MainActivity.class));
+
+                if (mSaveListener != null) {
+                    mSaveListener.onSaveClicked();
+                }
+
+//                startActivity(new Intent(getContext(), MainActivity.class));
             }
         });
         Log.d(TAG, "onCreateView: Exiting...");

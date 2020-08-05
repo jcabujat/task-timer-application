@@ -8,7 +8,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-public class AddEditActivity extends AppCompatActivity {
+public class AddEditActivity extends AppCompatActivity implements AddEditActivityFragment.OnSaveClicked {
     private static final String TAG = "AddEditActivity";
 
     @Override
@@ -33,5 +33,8 @@ public class AddEditActivity extends AppCompatActivity {
         fragmentTransaction.commit();
     }
 
-
+    @Override
+    public void onSaveClicked() {
+        finish();
+    }
 }
