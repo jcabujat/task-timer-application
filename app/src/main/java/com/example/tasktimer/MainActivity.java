@@ -13,7 +13,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 public class MainActivity extends AppCompatActivity implements CursorRecyclerViewAdapter.OnTaskClickListener,
-        AddEditActivityFragment.OnSaveClicked {
+        AddEditActivityFragment.OnSaveClicked,
+        AppDialog.DialogEvents {
     private static final String TAG = "MainActivity";
 
     // Whether or not the activity is in 2-pane mode
@@ -21,6 +22,7 @@ public class MainActivity extends AppCompatActivity implements CursorRecyclerVie
     private boolean mTwoPane = false;
 
     public static final String ADD_EDIT_FRAGMENT = "AddEditFragment";
+    public static final int DELETE_DIALOG_ID = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -155,8 +157,19 @@ public class MainActivity extends AppCompatActivity implements CursorRecyclerVie
 
     @Override
     public void onDeleteClick(Task task) {
-        getContentResolver().delete(TasksContract.buildTasksUri(task.getId()), null, null);
-        Toast.makeText(this, "Task deleted successfully", Toast.LENGTH_LONG).show();
+        Log.d(TAG, "onDeleteClick: starts");
+
+        AppDialog dialog = new AppDialog();
+        Bundle args = new Bundle();
+        args.putInt(AppDialog.DIALOG_ID, DELETE_DIALOG_ID);
+        args.putString(AppDialog.DIALOG_MESSAGE, getString(R.string.deldiag_message, task.getId(), task.getName()));
+        args.putInt(AppDialog.DIALOG_POSITIVE_RID, R.string.deldiag_positive_caption);
+        args.putLong("TaskId", task.getId());
+
+        dialog.setArguments(args);
+        dialog.show(getSupportFragmentManager(), null);
+
+
     }
 
     private void taskEditRequest(Task task) {
@@ -190,5 +203,25 @@ public class MainActivity extends AppCompatActivity implements CursorRecyclerVie
                 startActivity(detailIntent);
             }
         }
+    }
+
+    @Override
+    public void onPositiveDialogResult(int dialogId, Bundle args) {
+        Log.d(TAG, "onPositiveDialogResult: starts");
+
+        Long taskId = args.getLong("TaskId");
+        if (BuildConfig.DEBUG && taskId == 0) throw new AssertionError("TaskId is zero");
+        getContentResolver().delete(TasksContract.buildTasksUri(taskId), null, null);
+        Toast.makeText(this, "Task deleted successfully", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onNegativeDialogResult(int dialogId, Bundle args) {
+        Log.d(TAG, "onNegativeDialogResult: starts");
+    }
+
+    @Override
+    public void onDialogCancelled(int dialogId) {
+        Log.d(TAG, "onDialogCancelled: starts");
     }
 }

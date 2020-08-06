@@ -17,4 +17,8 @@
     <string name="addedit_save_text">Save</string>
     <string name="instructions_heading">Instructions:</string>
     <string name="instructions_detail">Use add button (+) in the toolbar to create new task. \n\nTask will be sorted by sort order from low to high. Task with the same sort order will be sorted alphabetically by name. \n\nTapping a task will start the timer for that task (and will stop the timer for any previous task that was being timed). \n\nEach task has Edit and Delete buttons if you want to edit the details or remove the task.</string>
+    <string name="ok">OK</string>
+    <string name="cancel">CANCEL</string>
+    <string name="deldiag_positive_caption">Delete</string>
+    <string name="deldiag_message">Deleting task will also delete all timing data associated with task id %1$d: %2$s.</string>
 </resources>
