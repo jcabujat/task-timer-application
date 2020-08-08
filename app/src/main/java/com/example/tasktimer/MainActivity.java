@@ -1,12 +1,16 @@
 package com.example.tasktimer;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
@@ -16,13 +20,14 @@ public class MainActivity extends AppCompatActivity implements CursorRecyclerVie
         AddEditActivityFragment.OnSaveClicked,
         AppDialog.DialogEvents {
     private static final String TAG = "MainActivity";
+    private AlertDialog mDialog = null;
 
     // Whether or not the activity is in 2-pane mode
     // i.e. running in landscape in a tablet.
     private boolean mTwoPane = false;
 
-    public static final String ADD_EDIT_FRAGMENT = "AddEditFragment";
-    public static final int DELETE_DIALOG_ID = 1;
+    public static final int DIALOG_ID_DELETE = 1;
+    public static final int DIALOG_ID_CANCEL_EDIT = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,12 +147,30 @@ public class MainActivity extends AppCompatActivity implements CursorRecyclerVie
             case R.id.menumain_settings:
                 break;
             case R.id.menumain_showAbout:
+                showAboutDialog();
                 break;
             case R.id.menumain_generate:
                 break;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @SuppressLint("SetTextI18n")
+    public void showAboutDialog() {
+        @SuppressLint("InflateParams") View messageView = getLayoutInflater().inflate(R.layout.about, null, false);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.app_name);
+        builder.setIcon(R.mipmap.ic_launcher);
+        builder.setView(messageView);
+
+        mDialog = builder.create();
+        mDialog.setCanceledOnTouchOutside(true);
+
+        TextView tv = (TextView) messageView.findViewById(R.id.about_version);
+        tv.setText("v" + BuildConfig.VERSION_NAME);
+
+        mDialog.show();
     }
 
     @Override
@@ -161,8 +184,8 @@ public class MainActivity extends AppCompatActivity implements CursorRecyclerVie
 
         AppDialog dialog = new AppDialog();
         Bundle args = new Bundle();
-        args.putInt(AppDialog.DIALOG_ID, DELETE_DIALOG_ID);
-        args.putString(AppDialog.DIALOG_MESSAGE, getString(R.string.deldiag_message, task.getId(), task.getName()));
+        args.putInt(AppDialog.DIALOG_ID, DIALOG_ID_DELETE);
+        args.putString(AppDialog.DIALOG_MESSAGE, getString(R.string.deldiag_message, task.getName()));
         args.putInt(AppDialog.DIALOG_POSITIVE_RID, R.string.deldiag_positive_caption);
         args.putLong("TaskId", task.getId());
 
@@ -208,20 +231,74 @@ public class MainActivity extends AppCompatActivity implements CursorRecyclerVie
     @Override
     public void onPositiveDialogResult(int dialogId, Bundle args) {
         Log.d(TAG, "onPositiveDialogResult: starts");
-
         Long taskId = args.getLong("TaskId");
-        if (BuildConfig.DEBUG && taskId == 0) throw new AssertionError("TaskId is zero");
-        getContentResolver().delete(TasksContract.buildTasksUri(taskId), null, null);
-        Toast.makeText(this, "Task deleted successfully", Toast.LENGTH_LONG).show();
+
+        switch (dialogId) {
+            case DIALOG_ID_DELETE:
+                if (BuildConfig.DEBUG && taskId == 0) throw new AssertionError("TaskId is zero");
+                getContentResolver().delete(TasksContract.buildTasksUri(taskId), null, null);
+                Toast.makeText(this, "Task deleted successfully", Toast.LENGTH_LONG).show();
+                break;
+            case DIALOG_ID_CANCEL_EDIT:
+                // no action required
+                break;
+            default:
+                break;
+        }
+
     }
 
     @Override
     public void onNegativeDialogResult(int dialogId, Bundle args) {
         Log.d(TAG, "onNegativeDialogResult: starts");
+        switch (dialogId) {
+            case DIALOG_ID_DELETE:
+                // no action required
+                break;
+            case DIALOG_ID_CANCEL_EDIT:
+                AddEditActivityFragment fragment = (AddEditActivityFragment) getSupportFragmentManager().findFragmentById(R.id.task_detail_container);
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .remove(fragment)
+                        .commit();
+                break;
+            default:
+                break;
+        }
     }
 
     @Override
     public void onDialogCancelled(int dialogId) {
         Log.d(TAG, "onDialogCancelled: starts");
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.d(TAG, "onBackPressed: called");
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        AddEditActivityFragment fragment = (AddEditActivityFragment) fragmentManager.findFragmentById(R.id.task_detail_container);
+        if (fragment == null || fragment.canClose()) {
+            super.onBackPressed();
+        } else {
+            // show dialog to get confirmation to quit editing
+            AppDialog dialog = new AppDialog();
+            Bundle args = new Bundle();
+            args.putInt(AppDialog.DIALOG_ID, DIALOG_ID_CANCEL_EDIT);
+            args.putString(AppDialog.DIALOG_MESSAGE, getString(R.string.cancelEditDiag_message));
+            args.putInt(AppDialog.DIALOG_POSITIVE_RID, R.string.cancelEditDiag_positive_caption);
+            args.putInt(AppDialog.DIALOG_NEGATIVE_RID, R.string.cancelEditDiag_negative_caption);
+
+            dialog.setArguments(args);
+            dialog.show(getSupportFragmentManager(), null);
+        }
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mDialog != null && mDialog.isShowing()) {
+            mDialog.dismiss();
+        }
     }
 }
