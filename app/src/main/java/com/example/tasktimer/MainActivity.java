@@ -1,6 +1,7 @@
 package com.example.tasktimer;
 
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -164,8 +165,30 @@ public class MainActivity extends AppCompatActivity implements CursorRecyclerVie
         builder.setIcon(R.mipmap.ic_launcher);
         builder.setView(messageView);
 
+        // adding a button to dismiss the dialog
+        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+//                Log.d(TAG, "onClick: Entering builder.setPositiveButton.onClick, showing = " + mDialog.isShowing());
+                if (mDialog != null && mDialog.isShowing()) {
+                    mDialog.dismiss();
+                }
+            }
+        });
+
         mDialog = builder.create();
         mDialog.setCanceledOnTouchOutside(true);
+
+        // code for dismissing dialog when clicked.
+//        messageView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Log.d(TAG, "onClick: Entering messageView.onClick, showing " + mDialog.isShowing());
+//                if (mDialog != null && mDialog.isShowing()) {
+//                    mDialog.dismiss();
+//                }
+//            }
+//        });
 
         TextView tv = (TextView) messageView.findViewById(R.id.about_version);
         tv.setText("v" + BuildConfig.VERSION_NAME);
