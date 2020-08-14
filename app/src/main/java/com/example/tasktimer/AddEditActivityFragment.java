@@ -15,6 +15,9 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 public class AddEditActivityFragment extends Fragment {
@@ -43,6 +46,7 @@ public class AddEditActivityFragment extends Fragment {
         return false; // TODO will change implementation later
     }
 
+
     @Override
     public void onAttach(@NonNull Context context) {
         Log.d(TAG, "onAttach: starts");
@@ -58,10 +62,23 @@ public class AddEditActivityFragment extends Fragment {
     }
 
     @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+    }
+
+    @Override
     public void onDetach() {
         Log.d(TAG, "onDetach: starts");
         super.onDetach();
         mSaveListener = null;
+        ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(false);
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -113,12 +130,17 @@ public class AddEditActivityFragment extends Fragment {
                     sortOrder = 0;
                 }
 
+
                 ContentResolver contentResolver = getActivity().getContentResolver();
                 ContentValues values = new ContentValues();
+
 
                 switch (mMode) {
                     // Update database only when there are changes in at least one field
                     case EDIT:
+                        if (task == null) {
+                            break;
+                        }
                         if (!mNameTextView.getText().toString().equals(task.getName())) {
                             values.put(TasksContract.Columns.TASKS_NAME, mNameTextView.getText().toString());
                         }
@@ -159,5 +181,6 @@ public class AddEditActivityFragment extends Fragment {
 
         return view;
     }
+
 
 }
