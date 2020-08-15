@@ -17,9 +17,11 @@ class CursorRecyclerViewAdapter extends RecyclerView.Adapter<CursorRecyclerViewA
     private OnTaskClickListener mListener;
 
     interface OnTaskClickListener {
-        void onEditClick(Task task);
+        void onEditClick(@NonNull Task task);
 
-        void onDeleteClick(Task task);
+        void onDeleteClick(@NonNull Task task);
+
+        void onTaskLongClick(@NonNull Task task);
     }
 
     public CursorRecyclerViewAdapter(Cursor cursor, OnTaskClickListener listener) {
@@ -35,14 +37,12 @@ class CursorRecyclerViewAdapter extends RecyclerView.Adapter<CursorRecyclerViewA
     @NonNull
     @Override
     public TaskViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-//        Log.d(TAG, "onCreateViewHolder: new ViewHolder requested");
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.task_list_items, parent, false);
         return new TaskViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
-//        Log.d(TAG, "onBindViewHolder: starts");
 
         if (mCursor == null || mCursor.getCount() == 0) {
             Log.d(TAG, "onBindViewHolder: No tasks yet, providing instructions");
@@ -68,7 +68,6 @@ class CursorRecyclerViewAdapter extends RecyclerView.Adapter<CursorRecyclerViewA
             View.OnClickListener buttonListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-//                    Log.d(TAG, "onClick: starts");
                     switch (view.getId()) {
                         case R.id.tli_edit:
                             if (mListener != null) {
@@ -83,13 +82,23 @@ class CursorRecyclerViewAdapter extends RecyclerView.Adapter<CursorRecyclerViewA
                         default:
                             Log.d(TAG, "onClick: found unexpected button id " + view.getId());
                     }
-//                    Log.d(TAG, "onClick: button with id " + view.getId() + " clicked.");
-//                    Log.d(TAG, "onClick: task name is " + task.getName());
+                }
+            };
+
+            View.OnLongClickListener buttonLongClickListener = new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    if (mListener != null) {
+                        mListener.onTaskLongClick(task);
+                        return true;
+                    }
+                    return false;
                 }
             };
 
             holder.editButton.setOnClickListener(buttonListener);
             holder.deleteButton.setOnClickListener(buttonListener);
+            holder.itemView.setOnLongClickListener(buttonLongClickListener);
         }
 
     }
@@ -130,10 +139,11 @@ class CursorRecyclerViewAdapter extends RecyclerView.Adapter<CursorRecyclerViewA
     static class TaskViewHolder extends RecyclerView.ViewHolder {
         private static final String TAG = "TaskViewHolder";
 
-        TextView name = null;
-        TextView description = null;
-        ImageButton editButton = null;
-        ImageButton deleteButton = null;
+        TextView name;
+        TextView description;
+        ImageButton editButton;
+        ImageButton deleteButton;
+        View itemView;
 
         public TaskViewHolder(View itemView) {
             super(itemView);
@@ -143,6 +153,7 @@ class CursorRecyclerViewAdapter extends RecyclerView.Adapter<CursorRecyclerViewA
             this.description = itemView.findViewById(R.id.tli_description);
             this.editButton = itemView.findViewById(R.id.tli_edit);
             this.deleteButton = itemView.findViewById(R.id.tli_delete);
+            this.itemView = itemView;
         }
     }
 

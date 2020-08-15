@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -29,6 +30,7 @@ public class MainActivity extends AppCompatActivity implements CursorRecyclerVie
 
     public static final int DIALOG_ID_DELETE = 1;
     public static final int DIALOG_ID_CANCEL_EDIT = 2;
+    private Timing mCurrentTiming = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,12 +38,6 @@ public class MainActivity extends AppCompatActivity implements CursorRecyclerVie
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-//        if (findViewById(R.id.task_detail_container) != null) {
-//            // Detail container view will present only in large screen layouts (res/value-land and res/value-sw600dp)
-//            // If this view is present, then activity should be in two-pane mode.
-//            mTwoPane = true;
-//        }
 
         mTwoPane = (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE);
         Log.d(TAG, "onCreate: twoPane is " + mTwoPane);
@@ -244,16 +240,15 @@ public class MainActivity extends AppCompatActivity implements CursorRecyclerVie
     }
 
     @Override
-    public void onEditClick(Task task) {
+    public void onEditClick(@NonNull Task task) {
         taskEditRequest(task);
     }
 
     @Override
-    public void onDeleteClick(Task task) {
-        Log.d(TAG, "onDeleteClick: starts");
-
+    public void onDeleteClick(@NonNull Task task) {
         AppDialog dialog = new AppDialog();
         Bundle args = new Bundle();
+
         args.putInt(AppDialog.DIALOG_ID, DIALOG_ID_DELETE);
         args.putString(AppDialog.DIALOG_MESSAGE, getString(R.string.deldiag_message, task.getName()));
         args.putInt(AppDialog.DIALOG_POSITIVE_RID, R.string.deldiag_positive_caption);
@@ -261,8 +256,31 @@ public class MainActivity extends AppCompatActivity implements CursorRecyclerVie
 
         dialog.setArguments(args);
         dialog.show(getSupportFragmentManager(), null);
+    }
 
-
+    @Override
+    public void onTaskLongClick(@NonNull Task task) {
+        TextView taskName = findViewById(R.id.current_task);
+        if (mCurrentTiming != null) {
+            if (task.getId() == mCurrentTiming.getTask().getId()) {
+                // the current task was tapped a second time, so stop timing
+                // TODO saveTiming(mCurrentTiming)
+                mCurrentTiming = null;
+                taskName.setText(getString(R.string.no_task_message));
+                Toast.makeText(this, task.getName() + " timing stopped ", Toast.LENGTH_SHORT).show();
+            } else {
+                // a new task is being timed, so stop the old one first
+                // TODO saveTiming(mCurrentTiming)
+                mCurrentTiming = new Timing(task);
+                Toast.makeText(this, task.getName() + " timing started ", Toast.LENGTH_SHORT).show();
+                taskName.setText("Timing " + mCurrentTiming.getTask().getName());
+            }
+        } else {
+            // no task being timed, so start timing the new task
+            mCurrentTiming = new Timing(task);
+            Toast.makeText(this, task.getName() + " timing started ", Toast.LENGTH_SHORT).show();
+            taskName.setText("Timing " + mCurrentTiming.getTask().getName());
+        }
     }
 
     private void taskEditRequest(Task task) {
