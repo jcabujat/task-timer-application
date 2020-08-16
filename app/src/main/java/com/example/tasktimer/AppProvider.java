@@ -48,9 +48,9 @@ public class AppProvider extends ContentProvider {
         //e.g. content://com.example.tasktimer.provider/Tasks/2
         matcher.addURI(CONTENT_AUTHORITY, TasksContract.TABLE_NAME + "/#", TASKS_ID);
 
-//        matcher.addURI(CONTENT_AUTHORITY, TasksContract.TABLE_NAME, TIMINGS);
-//        matcher.addURI(CONTENT_AUTHORITY, TasksContract.TABLE_NAME + "/#", TIMINGS_ID);
-//
+        matcher.addURI(CONTENT_AUTHORITY, TimingsContract.TABLE_NAME, TIMINGS);
+        matcher.addURI(CONTENT_AUTHORITY, TimingsContract.TABLE_NAME + "/#", TIMINGS_ID);
+
 //        matcher.addURI(CONTENT_AUTHORITY, TasksContract.TABLE_NAME, TASK_DURATION);
 //        matcher.addURI(CONTENT_AUTHORITY, TasksContract.TABLE_NAME + "/#", TASK_DURATION_ID);
 
@@ -85,15 +85,15 @@ public class AppProvider extends ContentProvider {
                 queryBuilder.appendWhere(TasksContract.Columns._ID + " = " + taskId);
                 break;
 
-//            case TIMINGS:
-//                queryBuilder.setTables(TimingsContract.TABLE_NAME);
-//                break;
-//
-//            case TIMINGS_ID:
-//                queryBuilder.setTables(TimingsContract.TABLE_NAME);
-//                long timingId = TimingsContract.getTimingId(uri);
-//                queryBuilder.appendWhere(TimingsContract.Columns._ID + " = " + timingId);
-//
+            case TIMINGS:
+                queryBuilder.setTables(TimingsContract.TABLE_NAME);
+                break;
+
+            case TIMINGS_ID:
+                queryBuilder.setTables(TimingsContract.TABLE_NAME);
+                long timingId = TimingsContract.getTimingId(uri);
+                queryBuilder.appendWhere(TimingsContract.Columns._ID + " = " + timingId);
+
 //            case TASK_DURATION:
 //                queryBuilder.setTables(DurationsContract.TABLE_NAME);
 //                break;
@@ -125,12 +125,12 @@ public class AppProvider extends ContentProvider {
             case TASKS_ID:
                 return TasksContract.CONTENT_ITEM_TYPE;
 
-//            case TIMINGS:
-//                return TimingsContract.CONTENT_TYPE;
-//
-//            case TIMINGS_ID:
-//                return TimingsContract.CONTENT_ITEM_TYPE;
-//
+            case TIMINGS:
+                return TimingsContract.CONTENT_TYPE;
+
+            case TIMINGS_ID:
+                return TimingsContract.CONTENT_ITEM_TYPE;
+
 //            case TASK_DURATION:
 //                return DurationsContract.CONTENT_TYPE;
 //
@@ -166,18 +166,19 @@ public class AppProvider extends ContentProvider {
                 break;
 
             case TIMINGS:
-//                db = mOpenHelper.getWritableDatabase();
-//                recordId = db.insert(TimingsContract.TABLE_NAME, null, contentValues);
-//                if (recordId >= 0) {
-//                    returnUri = TimingsContract.buildTasksUri(recordId);
-//                } else {
-//                    throw new android.database.SQLException("Failed to insert into " + uri.toString());
-//                }
-//                break;
+                db = mOpenHelper.getWritableDatabase();
+                recordId = db.insert(TimingsContract.TABLE_NAME, null, contentValues);
+                if (recordId >= 0) {
+                    returnUri = TimingsContract.buildTimingsUri(recordId);
+                } else {
+                    throw new android.database.SQLException("Failed to insert into " + uri.toString());
+                }
+                break;
 
             default:
                 throw new IllegalArgumentException("Unknown uri: " + uri);
         }
+
         if (recordId >= 0) {
             // something was inserted
             Log.d(TAG, "insert: setting notifyChanged with " + uri);
@@ -217,21 +218,21 @@ public class AppProvider extends ContentProvider {
                 count = db.delete(TasksContract.TABLE_NAME, selectionCriteria, selectionArgs);
                 break;
 
-//            case TIMINGS:
-//                db = mOpenHelper.getWritableDatabase();
-//                count = db.delete(TimingsContract.TABLE_NAME, selection, selectionArgs);
-//                break;
+            case TIMINGS:
+                db = mOpenHelper.getWritableDatabase();
+                count = db.delete(TimingsContract.TABLE_NAME, selection, selectionArgs);
+                break;
 
-//            case TIMINGS_ID:
-//                db = mOpenHelper.getWritableDatabase();
-//                long timingId = TimingsContract.getTaskId(uri);
-//                selectionCriteria = TimingsContract.Columns._ID + " = " + timingId;
-//
-//                if ((selection != null) && (selection.length() > 0)) {
-//                    selectionCriteria += " AND (" + selection + ") ";
-//                }
-//                count = db.delete(TimingsContract.TABLE_NAME, selectionCriteria, selectionArgs);
-//                break;
+            case TIMINGS_ID:
+                db = mOpenHelper.getWritableDatabase();
+                long timingId = TimingsContract.getTimingId(uri);
+                selectionCriteria = TimingsContract.Columns._ID + " = " + timingId;
+
+                if ((selection != null) && (selection.length() > 0)) {
+                    selectionCriteria += " AND (" + selection + ") ";
+                }
+                count = db.delete(TimingsContract.TABLE_NAME, selectionCriteria, selectionArgs);
+                break;
 
             default:
                 throw new IllegalArgumentException("Unknown uri: " + uri);
@@ -276,21 +277,21 @@ public class AppProvider extends ContentProvider {
                 count = db.update(TasksContract.TABLE_NAME, contentValues, selectionCriteria, selectionArgs);
                 break;
 
-//            case TIMINGS:
-//                db = mOpenHelper.getWritableDatabase();
-//                count = db.update(TimingsContract.TABLE_NAME, contentValues, selection, selectionArgs);
-//                break;
+            case TIMINGS:
+                db = mOpenHelper.getWritableDatabase();
+                count = db.update(TimingsContract.TABLE_NAME, contentValues, selection, selectionArgs);
+                break;
 
-//            case TIMINGS_ID:
-//                db = mOpenHelper.getWritableDatabase();
-//                long timingId = TimingsContract.getTaskId(uri);
-//                selectionCriteria = TimingsContract.Columns._ID + " = " + timingId;
-//
-//                if ((selection != null) && (selection.length() > 0)) {
-//                    selectionCriteria += " AND (" + selection + ") ";
-//                }
-//                count = db.update(TimingsContract.TABLE_NAME, contentValues, selectionCriteria, selectionArgs);
-//                break;
+            case TIMINGS_ID:
+                db = mOpenHelper.getWritableDatabase();
+                long timingId = TimingsContract.getTimingId(uri);
+                selectionCriteria = TimingsContract.Columns._ID + " = " + timingId;
+
+                if ((selection != null) && (selection.length() > 0)) {
+                    selectionCriteria += " AND (" + selection + ") ";
+                }
+                count = db.update(TimingsContract.TABLE_NAME, contentValues, selectionCriteria, selectionArgs);
+                break;
 
             default:
                 throw new IllegalArgumentException("Unknown uri: " + uri);

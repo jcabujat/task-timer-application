@@ -15,7 +15,7 @@ class AppDatabase extends SQLiteOpenHelper {
     private static final String TAG = "AppDatabase";
 
     public static final String DATABASE_NAME = "TaskTimer.db";
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
 
     // Implement AppDatabase as a singleton class
     private static AppDatabase instance = null;
@@ -53,6 +53,8 @@ class AppDatabase extends SQLiteOpenHelper {
         Log.d(TAG, "SQL query: " + sSQL);
         sqLiteDatabase.execSQL(sSQL);
 
+        addTimingsTable(sqLiteDatabase);
+
     }
 
     @Override
@@ -61,9 +63,30 @@ class AppDatabase extends SQLiteOpenHelper {
         switch (oldVersion) {
             case 1:
                 // upgrade logic from version 1
+                addTimingsTable(sqLiteDatabase);
             default:
                 throw new IllegalStateException("onUpgrade() with unknown new version" + newVersion);
         }
 
+    }
+
+    private void addTimingsTable(SQLiteDatabase sqLiteDatabase) {
+        String sSQL = "CREATE TABLE " + TimingsContract.TABLE_NAME + " ("
+                + TimingsContract.Columns._ID + " INTEGER PRIMARY KEY NOT NULL, "
+                + TimingsContract.Columns.TIMING_TASK_ID + " INTEGER NOT NULL, "
+                + TimingsContract.Columns.TIMING_START_TIME + " INTEGER, "
+                + TimingsContract.Columns.TIMING_DURATION + " INTEGER);";
+        Log.d(TAG, "SQL query: " + sSQL);
+        sqLiteDatabase.execSQL(sSQL);
+
+        sSQL = "CREATE TRIGGER Remove_Task"
+                + " AFTER DELETE ON " + TasksContract.TABLE_NAME
+                + " FOR EACH ROW "
+                + " BEGIN"
+                + " DELETE FROM " + TimingsContract.TABLE_NAME
+                + " WHERE " + TimingsContract.Columns._ID + " = OLD." + TasksContract.Columns._ID + ";"
+                + " END;";
+        Log.d(TAG, "SQL query: " + sSQL);
+        sqLiteDatabase.execSQL(sSQL);
     }
 }

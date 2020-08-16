@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements CursorRecyclerVie
 
     public static final int DIALOG_ID_DELETE = 1;
     public static final int DIALOG_ID_CANCEL_EDIT = 2;
-    private Timing mCurrentTiming = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -260,27 +260,8 @@ public class MainActivity extends AppCompatActivity implements CursorRecyclerVie
 
     @Override
     public void onTaskLongClick(@NonNull Task task) {
-        TextView taskName = findViewById(R.id.current_task);
-        if (mCurrentTiming != null) {
-            if (task.getId() == mCurrentTiming.getTask().getId()) {
-                // the current task was tapped a second time, so stop timing
-                // TODO saveTiming(mCurrentTiming)
-                mCurrentTiming = null;
-                taskName.setText(getString(R.string.no_task_message));
-                Toast.makeText(this, task.getName() + " timing stopped ", Toast.LENGTH_SHORT).show();
-            } else {
-                // a new task is being timed, so stop the old one first
-                // TODO saveTiming(mCurrentTiming)
-                mCurrentTiming = new Timing(task);
-                Toast.makeText(this, task.getName() + " timing started ", Toast.LENGTH_SHORT).show();
-                taskName.setText("Timing " + mCurrentTiming.getTask().getName());
-            }
-        } else {
-            // no task being timed, so start timing the new task
-            mCurrentTiming = new Timing(task);
-            Toast.makeText(this, task.getName() + " timing started ", Toast.LENGTH_SHORT).show();
-            taskName.setText("Timing " + mCurrentTiming.getTask().getName());
-        }
+        // implemented to comply with interface CursorRecyclerViewAdapter.OnTaskClickListener
+        // actual code implementation is in MainActivityFragment
     }
 
     private void taskEditRequest(Task task) {
