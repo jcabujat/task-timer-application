@@ -30,10 +30,6 @@ class CursorRecyclerViewAdapter extends RecyclerView.Adapter<CursorRecyclerViewA
         mListener = listener;
     }
 
-    public void setListener(OnTaskClickListener listener) {
-        mListener = listener;
-    }
-
     @NonNull
     @Override
     public TaskViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -62,8 +58,8 @@ class CursorRecyclerViewAdapter extends RecyclerView.Adapter<CursorRecyclerViewA
 
             holder.name.setText(task.getName());
             holder.description.setText(task.getDescription());
-            holder.editButton.setVisibility(View.VISIBLE); // TODO add onClick listener
-            holder.deleteButton.setVisibility(View.VISIBLE); // TODO add onClick listener
+            holder.editButton.setVisibility(View.VISIBLE);
+            holder.deleteButton.setVisibility(View.VISIBLE);
 
             View.OnClickListener buttonListener = new View.OnClickListener() {
                 @Override
@@ -137,7 +133,7 @@ class CursorRecyclerViewAdapter extends RecyclerView.Adapter<CursorRecyclerViewA
     }
 
     static class TaskViewHolder extends RecyclerView.ViewHolder {
-        private static final String TAG = "TaskViewHolder";
+//        private static final String TAG = "TaskViewHolder";
 
         TextView name;
         TextView description;
@@ -147,7 +143,6 @@ class CursorRecyclerViewAdapter extends RecyclerView.Adapter<CursorRecyclerViewA
 
         public TaskViewHolder(View itemView) {
             super(itemView);
-//            Log.d(TAG, "TaskViewHolder: created");
 
             this.name = itemView.findViewById(R.id.tli_name);
             this.description = itemView.findViewById(R.id.tli_description);
@@ -156,5 +151,4 @@ class CursorRecyclerViewAdapter extends RecyclerView.Adapter<CursorRecyclerViewA
             this.itemView = itemView;
         }
     }
-
 }

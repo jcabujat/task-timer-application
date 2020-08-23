@@ -26,6 +26,7 @@
     <string name="cancelEditDiag_negative_caption">Quit Editing</string>
     <string name="about_copyright">Copyright \u00a9 2020 LearnProgramming.academy</string>
     <string name="about_weblink">Instructions available at www.learnprogramming.academy</string>
+    <string name="about_url"><u>http://www.learnprogramming.academy</u></string>
     <string name="about_email">For support, email tasktimer@learnprogramming.academy</string>
     <string name="about_credits">Icon derived from <b>analog clock</b> at openclipart.org by <b>Anonymous</b></string>
     <string name="current_timing_text">Timing %1$s</string>
