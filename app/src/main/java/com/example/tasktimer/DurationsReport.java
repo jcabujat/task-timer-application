@@ -1,16 +1,23 @@
 package com.example.tasktimer;
 
+import android.app.DatePickerDialog;
+import android.content.ContentResolver;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.BaseColumns;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.DatePicker;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.DialogFragment;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
@@ -22,15 +29,20 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 
-public class DurationsReport extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class DurationsReport extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
+        DatePickerDialog.OnDateSetListener, AppDialog.DialogEvents, View.OnClickListener {
 
     private static final String TAG = "DurationsReport";
 
     private static final int LOADER_ID = 1;
+    public static final int DIALOG_FILTER = 1;
+    public static final int DIALOG_DELETE = 2;
 
     private static final String SELECTION_PARAM = "SELECTION";
     private static final String SELECTION_ARGS_PARAM = "SELECTION_ARGS";
     private static final String SORT_ORDER_PARAM = "SORT_ORDER";
+
+    private static final String DELETION_DATE = "DELETION_DATE";
 
     public static final String CURRENT_DATE = "CURRENT_DATE";
     public static final String DISPLAY_WEEK = "DISPLAY_WEEK";
@@ -57,6 +69,37 @@ public class DurationsReport extends AppCompatActivity implements LoaderManager.
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
+        if (savedInstanceState != null) {
+            long timeInMillis = savedInstanceState.getLong(CURRENT_DATE, 0);
+            // it'll be zero when the activity's first created, so don't set the value
+            if (timeInMillis != 0) {
+                mCalendar.setTimeInMillis(timeInMillis);
+                // make sure this part is cleared because we filter the database by seconds
+                mCalendar.clear(GregorianCalendar.HOUR_OF_DAY);
+                mCalendar.clear(GregorianCalendar.MINUTE);
+                mCalendar.clear(GregorianCalendar.SECOND);
+            }
+            mDisplayWeek = savedInstanceState.getBoolean(DISPLAY_WEEK, true);
+
+        }
+
+        applyFilter();
+
+        // Set the listener for the buttons so we can sort the report
+        TextView taskName = findViewById(R.id.td_name_heading);
+        taskName.setOnClickListener(this);
+
+        TextView taskDescription = findViewById(R.id.td_description_heading);
+        if (taskDescription != null) {
+            taskDescription.setOnClickListener(this);
+        }
+
+        TextView taskDate = findViewById(R.id.td_start_heading);
+        taskDate.setOnClickListener(this);
+
+        TextView taskDuration = findViewById(R.id.td_duration_heading);
+        taskDuration.setOnClickListener(this);
+
         RecyclerView recyclerView = findViewById(R.id.td_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         // Create an empty adapter we will use, to display the loaded data.
@@ -67,6 +110,13 @@ public class DurationsReport extends AppCompatActivity implements LoaderManager.
 
         LoaderManager.getInstance(this).initLoader(LOADER_ID, mArgs, this);
 
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong(CURRENT_DATE, mCalendar.getTimeInMillis());
+        outState.putBoolean(DISPLAY_WEEK, mDisplayWeek);
     }
 
     @Override
@@ -87,10 +137,10 @@ public class DurationsReport extends AppCompatActivity implements LoaderManager.
                 LoaderManager.getInstance(this).restartLoader(LOADER_ID, mArgs, this);
                 return true;
             case R.id.rm_filter_date:
-                // TODO showDatePickerDialog(); // The actual filtering is done in onDateSet();
+                showDatePickerDialog(getString(R.string.date_title_filter), DIALOG_FILTER); // The actual filtering is done in onDateSet();
                 return true;
             case R.id.rm_delete:
-                // TODO showDatePickerDialog(); // The actual deletion is done in onDateSet();
+                showDatePickerDialog(getString(R.string.date_title_delete), DIALOG_DELETE); // The actual deletion is done in onDateSet();
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -110,6 +160,103 @@ public class DurationsReport extends AppCompatActivity implements LoaderManager.
             }
         }
         return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public void onClick(View view) {
+        Log.d(TAG, "onClick: called");
+
+        switch (view.getId()) {
+            case R.id.td_name_heading:
+                mArgs.putString(SORT_ORDER_PARAM, DurationsContract.Columns.DURATIONS_NAME);
+                break;
+            case R.id.td_description_heading:
+                mArgs.putString(SORT_ORDER_PARAM, DurationsContract.Columns.DURATIONS_DESCRIPTION);
+                break;
+            case R.id.td_start_heading:
+                mArgs.putString(SORT_ORDER_PARAM, DurationsContract.Columns.DURATIONS_START_DATE);
+                break;
+            case R.id.td_duration_heading:
+                mArgs.putString(SORT_ORDER_PARAM, DurationsContract.Columns.DURATIONS_DURATION);
+                break;
+        }
+        LoaderManager.getInstance(this).restartLoader(LOADER_ID, mArgs, this);
+    }
+
+    private void showDatePickerDialog(String title, int dialogId) {
+        Log.d(TAG, "showDatePickerDialog: entering..");
+        DialogFragment dialogFragment = new DatePickerFragment();
+
+        Bundle arguments = new Bundle();
+        arguments.putInt(DatePickerFragment.DATE_PICKER_ID, dialogId);
+        arguments.putString(DatePickerFragment.DATE_PICKER_TITLE, title);
+        arguments.putSerializable(DatePickerFragment.DATE_PICKER_DATE, mCalendar.getTime());
+
+        dialogFragment.setArguments(arguments);
+        dialogFragment.show(getSupportFragmentManager(), "datePicker");
+        Log.d(TAG, "showDatePickerDialog: exiting.");
+    }
+
+    @Override
+    public void onDateSet(DatePicker datePicker, int year, int month, int day) {
+        Log.d(TAG, "onDateSet: called");
+
+        // Check the id so we know what to do with the result
+        int dialogId = (int) datePicker.getTag();
+        mCalendar.set(year, month, day, 0, 0, 0);
+        switch (dialogId) {
+            case DIALOG_FILTER:
+                applyFilter();
+                LoaderManager.getInstance(this).restartLoader(LOADER_ID, mArgs, this);
+                break;
+            case DIALOG_DELETE:
+                String fromDate = DateFormat.getDateFormat(this).format(mCalendar.getTimeInMillis());
+                AppDialog dialog = new AppDialog();
+                Bundle args = new Bundle();
+                args.putInt(AppDialog.DIALOG_ID, 1); // we only have one dialog in this activity
+                args.putString(AppDialog.DIALOG_MESSAGE, getString(R.string.delete_timings_message, fromDate));
+                args.putLong(DELETION_DATE, mCalendar.getTimeInMillis());
+                dialog.setArguments(args);
+                dialog.show(getSupportFragmentManager(), null);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid mode when receiving DatePickerDialog result");
+        }
+    }
+
+    private void deleteRecords(long timeInMillis) {
+        Log.d(TAG, "deleteRecords: entering...");
+
+        long longDate = timeInMillis / 1000; // we need time in seconds
+        String[] selectionArgs = new String[]{Long.toString(longDate)};
+        String selection = TimingsContract.Columns.TIMING_START_TIME + " < ?";
+
+        ContentResolver contentResolver = getContentResolver();
+        contentResolver.delete(TimingsContract.CONTENT_URI, selection, selectionArgs);
+        applyFilter();
+        LoaderManager.getInstance(this).restartLoader(LOADER_ID, mArgs, this);
+
+        Log.d(TAG, "deleteRecords: exiting..");
+    }
+
+    @Override
+    public void onPositiveDialogResult(int dialogId, Bundle args) {
+        Log.d(TAG, "onPositiveDialogResult: called");
+        long deletionDate = args.getLong(DELETION_DATE);
+        // clear all timing records prior to the date selected
+        deleteRecords(deletionDate);
+        // re-query in case we've deleted the records that are currently being shown
+//        LoaderManager.getInstance(this).restartLoader(LOADER_ID, mArgs, this);
+    }
+
+    @Override
+    public void onNegativeDialogResult(int dialogId, Bundle args) {
+
+    }
+
+    @Override
+    public void onDialogCancelled(int dialogId) {
+
     }
 
     private void applyFilter() {

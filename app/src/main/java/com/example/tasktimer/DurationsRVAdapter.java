@@ -82,6 +82,7 @@ public class DurationsRVAdapter extends RecyclerView.Adapter<DurationsRVAdapter.
         if (newCursor == mCursor) {
             return null;
         }
+        int numItems = getItemCount(); // store old item count
         final Cursor oldCursor = mCursor;
         mCursor = newCursor;
         if (newCursor != null) {
@@ -89,7 +90,7 @@ public class DurationsRVAdapter extends RecyclerView.Adapter<DurationsRVAdapter.
             notifyDataSetChanged();
         } else {
             // notify the observers about the lack of data set
-            notifyItemRangeRemoved(0, getItemCount());
+            notifyItemRangeRemoved(0, numItems);
         }
         return oldCursor;
     }
